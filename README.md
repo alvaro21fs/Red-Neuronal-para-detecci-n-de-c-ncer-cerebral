@@ -79,8 +79,6 @@ Class: pituitary
 
 Se puede observar que los resultados con esta red, tras realizar más epochs de entrenamiento, no superan a la propuesta, sin embargo, el tiempo de ejecución por epoch de esta último si es muy inferior al de la primera como se había comentado.
 
-
-
 <footer>
 
 <!--
