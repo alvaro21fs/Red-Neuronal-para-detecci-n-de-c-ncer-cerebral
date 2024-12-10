@@ -1,42 +1,85 @@
 <header>
-
-<!--
-  <<< Author notes: Course header >>>
-  Include a 1280×640 image, course title in sentence case, and a concise description in emphasis.
-  In your repository settings: enable template repository, add your 1280×640 social image, auto delete head branches.
-  Add your open source license, GitHub uses MIT license.
--->
-
-# GitHub Pages
-
-_Create a site or blog from your GitHub repositories with GitHub Pages._
-
 </header>
 
-<!--
-  <<< Author notes: Step 1 >>>
-  Choose 3-5 steps for your course.
-  The first step is always the hardest, so pick something easy!
-  Link to docs.github.com for further explanations.
-  Encourage users to open new tabs for steps!
--->
+# Proyecto para detección de tumor cerebral
+## Introducción
+Se ha utilizado el dataset de Kaggle llamado "Brain Tumor MRI Dataset". Cabe mencionar, que este conjunto de datos se divide en cuatro categorías, una perteneciente a no tumor y otras tres que son distintos tipos de tumores (class_names = ['notumor', 'meningioma', 'glioma', 'pituitary']).
 
-## Step 1: Enable GitHub Pages
+Con las citadas imágenes se han entrenado varios modelos de redes neuronales obteniendo distintos resultados que serán comentados a continuación. Asimismo, se ha utilizado Transfer Learning vía ResNet50 para compararla con la red neuronal propuesta.
 
-_Welcome to GitHub Pages and Jekyll :tada:!_
+## Primera red neuronal propuesta
+Se ha propuesto una primera red neuronal basada en redes convolucionales y fully-conected. Esta, se puede encontrar en el cuaderno de Jupyter llamado "Proyecto_Convolusional_Tumor_Cerebral".
+Con esta red neuronal se ha obtenido los siguientes resultados, tras entrenarla con un total de 10 epochs (estos resultados pueden ser mejorados con más entrenamiento, pero como prueba de conceptos es más que suficiente lo abordado en este trabajo.
 
-The first step is to enable GitHub Pages on this [repository](https://docs.github.com/en/get-started/quickstart/github-glossary#repository). When you enable GitHub Pages on a repository, GitHub takes the content that's on the main branch and publishes a website based on its contents.
+Accuracy of the model on the 21 test batches: 95.73%
 
-### :keyboard: Activity: Enable GitHub Pages
+Detailed Analysis:
+Class: notumor
+  True Positives: 270
+  False Positives: 10
+  False Negatives: 30
+  Sensitivity (Recall): 0.90
+  Precision: 0.96
 
-1. Open a new browser tab, and work on the steps in your second tab while you read the instructions in this tab.
-1. Under your repository name, click **Settings**.
-1. Click **Pages** in the **Code and automation** section.
-1. Ensure "Deploy from a branch" is selected from the **Source** drop-down menu, and then select `main` from the **Branch** drop-down menu.
-1. Click the **Save** button.
-1. Wait about _one minute_ then refresh this page (the one you're following instructions from). [GitHub Actions](https://docs.github.com/en/actions) will automatically update to the next step.
-   > Turning on GitHub Pages creates a deployment of your repository. GitHub Actions may take up to a minute to respond while waiting for the deployment. Future steps will be about 20 seconds; this step is slower.
-   > **Note**: In the **Pages** of **Settings**, the **Visit site** button will appear at the top. Click the button to see your GitHub Pages site.
+Class: meningioma
+  True Positives: 285
+  False Positives: 30
+  False Negatives: 21
+  Sensitivity (Recall): 0.93
+  Precision: 0.90
+
+Class: glioma
+  True Positives: 404
+  False Positives: 11
+  False Negatives: 1
+  Sensitivity (Recall): 1.00
+  Precision: 0.97
+
+Class: pituitary
+  True Positives: 296
+  False Positives: 5
+  False Negatives: 4
+  Sensitivity (Recall): 0.99
+  Precision: 0.98
+
+## Segunda red neuronal propuesta
+Para esta red, se ha utilizado Transfer Learning donde se ha utilizado la red residual ResNet50. En ella hemos dejado todas las capas congeladas y hemos añadidos varias capas fully-connected al final para que la salida sea una clasificación entre las cuatro clases citadas.
+Con esta red neuronal se ha obtenido los siguientes resultados, tras entrenarla con un total de 20 epochs (estos resultados pueden ser mejorados con más entrenamiento, pero como prueba de conceptos es más que suficiente lo abordado en este trabajo. Cabe mencionar, que hemos realizado el doble de epochs y aun así hemos tartado menos tiempo que con la primera red neuronal.
+
+Accuracy of the model on the 41 test batches: 91.38%
+
+Detailed Analysis:
+Class: notumor
+  True Positives: 255
+  False Positives: 21
+  False Negatives: 45
+  Sensitivity (Recall): 0.85
+  Precision: 0.92
+
+Class: meningioma
+  True Positives: 246
+  False Positives: 49
+  False Negatives: 60
+  Sensitivity (Recall): 0.80
+  Precision: 0.83
+
+Class: glioma
+  True Positives: 405
+  False Positives: 31
+  False Negatives: 0
+  Sensitivity (Recall): 1.00
+  Precision: 0.93
+
+Class: pituitary
+  True Positives: 292
+  False Positives: 12
+  False Negatives: 8
+  Sensitivity (Recall): 0.97
+  Precision: 0.96
+
+Se puede observar que los resultados con esta red, tras realizar más epochs de entrenamiento, no superan a la propuesta, sin embargo, el tiempo de ejecución por epoch de esta último si es muy inferior al de la primera como se había comentado.
+
+
 
 <footer>
 
