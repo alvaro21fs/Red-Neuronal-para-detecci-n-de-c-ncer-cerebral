@@ -288,6 +288,9 @@ for class_name in class_names:
       Sensitivity (Recall): 0.99
       Precision: 0.98
 
+A continuación se muestra la matriz de confusión:
+![image](https://github.com/user-attachments/assets/190b8431-d21c-4414-abbf-e90971a03fb6)
+
 
 ## Segunda red neuronal propuesta
 Para esta red, se ha utilizado Transfer Learning donde se ha utilizado la red residual ResNet50. En ella hemos dejado todas las capas congeladas y hemos añadidos varias capas fully-connected al final para que la salida sea una clasificación entre las cuatro clases citadas.
@@ -529,6 +532,10 @@ torch.load('resnet50_brain_tumor_1.pth')
 ```
 
 Se puede observar que los resultados con esta red, tras realizar más epochs de entrenamiento, no superan a la propuesta, sin embargo, el tiempo de ejecución por epoch de esta último si es muy inferior al de la primera como se había comentado.
+
+A continuación, se muestra la matriz de confusión:
+![image](https://github.com/user-attachments/assets/248593ba-78d1-4186-916b-e51119366c12)
+
 
 <footer>
 
