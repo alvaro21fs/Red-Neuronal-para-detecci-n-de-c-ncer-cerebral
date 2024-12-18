@@ -11,6 +11,286 @@ Con las citadas imágenes se han entrenado varios modelos de redes neuronales ob
 Se ha propuesto una primera red neuronal basada en redes convolucionales y fully-conected. Esta, se puede encontrar en el cuaderno de Jupyter llamado "Proyecto_Convolusional_Tumor_Cerebral".
 Con esta red neuronal se ha obtenido los siguientes resultados, tras entrenarla con un total de 10 epochs (estos resultados pueden ser mejorados con más entrenamiento, pero como prueba de conceptos es más que suficiente lo abordado en este trabajo.
 
+Importamos Pytorch
+
+
+```python
+import torch
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+```
+
+Transformamos las imágenes 
+
+
+```python
+transform = transforms.Compose([
+    transforms.Resize((512, 512)),  # Redimensiona todas las imágenes a 512x512
+    transforms.ToTensor(),  # Convertimos imágenes a Tensores
+    transforms.Normalize((0.5,), (0.5,))  # Normalizamos con media 0.5 y desviación estándar 0.5
+])
+```
+
+Obtenemos los datos de tumor cerebral (hay tres categorías de tumor y otra categoría de no tumor). Las imágenes son de 512x512 píxeles
+
+
+```python
+# Cargamos el dataset
+path_train = r"C:\Users\34620\Desktop\ULPGC\Master\Primer semestre\Computacion Inteligente\TumorCerebralDatabase\Training" 
+path_test = r"C:\Users\34620\Desktop\ULPGC\Master\Primer semestre\Computacion Inteligente\TumorCerebralDatabase\Testing"
+train_data = datasets.ImageFolder(root=path_train, transform=transform)
+test_data = datasets.ImageFolder(root=path_test, transform=transform)
+
+# DataLoader para los conjuntos de entrenamiento y prueba
+train_loader = DataLoader(train_data, batch_size=64, shuffle=True)
+test_loader = DataLoader(test_data, batch_size=64, shuffle=False)
+```
+
+Redes neuronales
+
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class ConvNet(nn.Module):
+    def __init__(self):
+        super(ConvNet, self).__init__()
+        # Tamaño de la imagen de entrada: 3x512x512
+
+        # Capas convolucionales
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=5, stride=1, padding=2)   # Entrada: 3 canales, Salida: 32 canales
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)        # Max pooling con un kernel de 2x2
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=2)  # Entrada: 32 canales, Salida: 64 canales
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1) # Entrada: 64 canales, Salida: 128 canales
+        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1) # Entrada: 128 canales, Salida: 256 canales
+        
+        # Capas fully connected
+        self.fc1 = nn.Linear(256 * 32 * 32, 512) # Aplanar a 32x32 para la primera capa fully connected
+        self.fc2 = nn.Linear(512, 256)
+        self.fc3 = nn.Linear(256, 128)
+        self.fc4 = nn.Linear(128, 4) # 4 clases de salida         
+
+    def forward(self, x): 
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = self.pool(F.relu(self.conv3(x)))
+        x = self.pool(F.relu(self.conv4(x)))
+        
+        # Aplanamos para la capa lineal
+        x = x.view(-1, 256 * 32 * 32)  
+        x = F.relu(self.fc1(x)) 
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+        x = self.fc4(x)  # Capa de salida
+        
+        return x
+
+```
+
+
+```python
+import torch.optim as optim
+
+model = ConvNet()
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+```
+
+
+```python
+
+# Entrenamiento
+epochs = 5
+for epoch in range(epochs):
+    running_loss = 0.0
+    for images, labels in train_loader:
+        optimizer.zero_grad()  # Limpiamos los gradientes
+        outputs = model(images)  # Pasamos las imágenes por la red
+        loss = criterion(outputs, labels)  # Calculamos la pérdida
+        loss.backward()  # Backpropagation
+        optimizer.step()  # Actualizamos los pesos
+        
+        running_loss += loss.item()
+    print(f'Epoch {epoch+1}, Loss: {running_loss/len(train_loader)}')
+```
+
+    Epoch 1, Loss: 0.717665958073404
+    Epoch 2, Loss: 0.3360781949427393
+    Epoch 3, Loss: 0.15339633321596516
+    Epoch 4, Loss: 0.1013386271842238
+    Epoch 5, Loss: 0.054086835586672856
+
+
+Guardamos el modelo entrenado
+
+
+```python
+torch.save(model.state_dict(), 'modelo_entrenado.pth')
+```
+
+Modelo entrenado guardado
+
+
+```python
+# Crear una nueva instancia del modelo
+model = ConvNet()  # Usa la misma clase y arquitectura que la original
+
+# Cargar los parámetros del modelo entrenado
+import torch.optim as optim
+model.load_state_dict(torch.load('modelo_entrenado.pth'))
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+```
+
+    C:\Users\34620\AppData\Local\Temp\ipykernel_11660\3172320796.py:6: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+      model.load_state_dict(torch.load('modelo_entrenado.pth'))
+
+
+
+```python
+correct = 0
+total = 0
+with torch.no_grad():  # No necesitamos calcular gradientes para la evaluación
+    for images, labels in test_loader:
+        outputs = model(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+print(f'Accuracy of the model on the 1000 test images: {100 * correct / total}%')
+```
+
+    Accuracy of the model on the 10000 test images: 91.38062547673532%
+
+
+Segundo entrenamiento
+
+
+```python
+# Entrenamiento
+epochs = 5
+for epoch in range(epochs):
+    running_loss = 0.0
+    for images, labels in train_loader:
+        optimizer.zero_grad()  # Limpiamos los gradientes
+        outputs = model(images)  # Pasamos las imágenes por la red
+        loss = criterion(outputs, labels)  # Calculamos la pérdida
+        loss.backward()  # Backpropagation
+        optimizer.step()  # Actualizamos los pesos
+        
+        running_loss += loss.item()
+    print(f'Epoch {epoch+1}, Loss: {running_loss/len(train_loader)}')
+```
+
+    Epoch 1, Loss: 0.07131760312735827
+    Epoch 2, Loss: 0.024409494996588264
+    Epoch 3, Loss: 0.03871911710270474
+    Epoch 4, Loss: 0.033330853973651146
+    Epoch 5, Loss: 0.0191059767058808
+
+
+Guardamos el modelo con el segundo entrenamiento
+
+
+```python
+torch.save(model.state_dict(), 'modelo_entrenado_2.pth')
+```
+
+
+```python
+from collections import defaultdict
+
+# Inicialización de variables
+correct = 0
+total = 0
+contador = 0
+
+# Inicialización de contadores por clase
+class_names = ['notumor', 'meningioma', 'glioma', 'pituitary']
+true_positives = defaultdict(int)  # TP para cada clase
+false_positives = defaultdict(int)  # FP para cada clase
+false_negatives = defaultdict(int)  # FN para cada clase
+# Cambiar el modelo al modo evaluación
+model.eval()
+
+with torch.no_grad():  # No necesitamos calcular gradientes para la evaluación
+    for images, labels in test_loader:
+        outputs = model(images)
+        _, predicted = torch.max(outputs.data, 1)
+
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+        # Iterar sobre cada elemento del batch para el análisis detallado
+        for label, prediction in zip(labels, predicted):
+            if label == prediction:
+                true_positives[class_names[label.item()]] += 1
+            else:
+                # Falso negativo: la clase real es `label` pero fue clasificada como algo más
+                false_negatives[class_names[label.item()]] += 1
+                # Falso positivo: predijo `prediction` incorrectamente
+                false_positives[class_names[prediction.item()]] += 1
+
+        contador += 1
+
+# Resultados
+accuracy = 100 * correct / total
+print(f'Accuracy of the model on the {contador} test batches: {accuracy:.2f}%')
+
+# Reporte detallado
+print("\nDetailed Analysis:")
+for class_name in class_names:
+    tp = true_positives[class_name]
+    fp = false_positives[class_name]
+    fn = false_negatives[class_name]
+    print(f"Class: {class_name}")
+    print(f"  True Positives: {tp}")
+    print(f"  False Positives: {fp}")
+    print(f"  False Negatives: {fn}")
+    if tp + fn > 0:
+        print(f"  Sensitivity (Recall): {tp / (tp + fn):.2f}")
+    if tp + fp > 0:
+        print(f"  Precision: {tp / (tp + fp):.2f}")
+    print()
+
+```
+
+    Accuracy of the model on the 21 test batches: 95.73%
+    
+    Detailed Analysis:
+    Class: notumor
+      True Positives: 270
+      False Positives: 10
+      False Negatives: 30
+      Sensitivity (Recall): 0.90
+      Precision: 0.96
+    
+    Class: meningioma
+      True Positives: 285
+      False Positives: 30
+      False Negatives: 21
+      Sensitivity (Recall): 0.93
+      Precision: 0.90
+    
+    Class: glioma
+      True Positives: 404
+      False Positives: 11
+      False Negatives: 1
+      Sensitivity (Recall): 1.00
+      Precision: 0.97
+    
+    Class: pituitary
+      True Positives: 296
+      False Positives: 5
+      False Negatives: 4
+      Sensitivity (Recall): 0.99
+      Precision: 0.98
+    
+
+
+
 Accuracy of the model on the 21 test batches: 95.73%
 
 Detailed Analysis:
