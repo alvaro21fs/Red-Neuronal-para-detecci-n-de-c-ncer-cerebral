@@ -287,40 +287,7 @@ for class_name in class_names:
       False Negatives: 4
       Sensitivity (Recall): 0.99
       Precision: 0.98
-    
 
-
-
-Accuracy of the model on the 21 test batches: 95.73%
-
-Detailed Analysis:
-Class: notumor
-  True Positives: 270
-  False Positives: 10
-  False Negatives: 30
-  Sensitivity (Recall): 0.90
-  Precision: 0.96
-
-Class: meningioma
-  True Positives: 285
-  False Positives: 30
-  False Negatives: 21
-  Sensitivity (Recall): 0.93
-  Precision: 0.90
-
-Class: glioma
-  True Positives: 404
-  False Positives: 11
-  False Negatives: 1
-  Sensitivity (Recall): 1.00
-  Precision: 0.97
-
-Class: pituitary
-  True Positives: 296
-  False Positives: 5
-  False Negatives: 4
-  Sensitivity (Recall): 0.99
-  Precision: 0.98
 
 ## Segunda red neuronal propuesta
 Para esta red, se ha utilizado Transfer Learning donde se ha utilizado la red residual ResNet50. En ella hemos dejado todas las capas congeladas y hemos añadidos varias capas fully-connected al final para que la salida sea una clasificación entre las cuatro clases citadas.
